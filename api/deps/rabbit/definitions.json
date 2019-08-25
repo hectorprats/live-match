@@ -1,0 +1,231 @@
+{
+  "rabbit_version": "3.6.5",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "o2MJjT8UKSRM7eoLDMWvm4LxqaFvDxd2wLg1KQQQ2jXfG5UE",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    },
+    {
+      "name": "/websockets"
+    },
+    {
+      "name": "/webhooks"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "parameters": [],
+  "policies": [],
+  "queues": [
+    {
+      "name": "LiveMatch.NewGoal",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.StartMatch",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.EndMatch",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewOffside",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewYellowCard",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewRedCard",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewPenalty",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewSubstitution",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "LiveMatch.NewGoal",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.StartMatch",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.EndMatch",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewOffside",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewYellowCard",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewRedCard",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewPenalty",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "LiveMatch.NewSubstitution",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "LiveMatch.NewGoal",
+      "vhost": "/",
+      "destination": "LiveMatch.NewGoal",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewGoal",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.StartMatch",
+      "vhost": "/",
+      "destination": "LiveMatch.StartMatch",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.StartMatch",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.EndMatch",
+      "vhost": "/",
+      "destination": "LiveMatch.EndMatch",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.EndMatch",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.NewOffside",
+      "vhost": "/",
+      "destination": "LiveMatch.NewOffside",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewOffside",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.NewYellowCard",
+      "vhost": "/",
+      "destination": "LiveMatch.NewYellowCard",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewYellowCard",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.NewRedCard",
+      "vhost": "/",
+      "destination": "LiveMatch.NewRedCard",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewRedCard",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.NewSubstitution",
+      "vhost": "/",
+      "destination": "LiveMatch.NewSubstitution",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewSubstitution",
+      "arguments": {}
+    },
+    {
+      "source": "LiveMatch.NewPenalty",
+      "vhost": "/",
+      "destination": "LiveMatch.NewPenalty",
+      "destination_type": "queue",
+      "routing_key": "LiveMatch.NewPenalty",
+      "arguments": {}
+    }
+  ]
+}

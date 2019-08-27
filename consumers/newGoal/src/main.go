@@ -91,7 +91,8 @@ func main() {
 		return
 	}
 
-	consume := func() {
+	closeFlag := make(chan bool)
+	consume := func(closeFlag chan bool) {
 		for m := range msgs {
 			fmt.Println(string(m.Body))
 			fmt.Println(fmt.Sprintf("Body length: %d", len(m.Body)))
@@ -107,10 +108,12 @@ func main() {
 				continue
 			}
 		}
+
+		closeFlag <- true
 	}
-	go consume()
-	whileTrue := make(chan bool)
-	<-whileTrue
+	go consume(closeFlag)
+	_ = <-closeFlag
+	fmt.Println("Received close flag")
 }
 
 func storeEvent(goal *newGoal, dc *apollo.DatabaseConnection) error {

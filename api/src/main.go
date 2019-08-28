@@ -42,6 +42,8 @@ func badRequest(w http.ResponseWriter, reason string) {
 	w.Write([]byte(reason))
 }
 
+type wrapper func(handlerMap map[string]leagueHandler, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) http.HandlerFunc
+
 func registerHandlers(app *apollo.DefaultApp) {
 	wrapper := func(handlerMap map[string]leagueHandler, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -58,76 +60,20 @@ func registerHandlers(app *apollo.DefaultApp) {
 			handler(w, r, app, pub)
 		}
 	}
-	newGoal := &apollo.RabbitPublisherSettings{
-		Queue:      "LiveMatch.NewGoal",
-		Exchange:   "LiveMatch.NewGoal",
-		RoutingKey: "LiveMatch.NewGoal",
-		Durable:    true,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-	newGoalVersionMap := make(map[string]leagueHandler)
-	newGoalVersionMap["1.0"] = NewGoal
-	app.Router.HandleFunc(RootUrl+"/newGoal", wrapper(newGoalVersionMap, app, newGoal)).Methods("POST")
 
-	newOffside := &apollo.RabbitPublisherSettings{
-		Queue:      "LiveMatch.NewOffside",
-		Exchange:   "LiveMatch.NewOffside",
-		RoutingKey: "LiveMatch.NewOffside",
-		Durable:    true,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-	newOffsideMap := make(map[string]leagueHandler)
-	newOffsideMap["1.0"] = NewOffside
-	app.Router.HandleFunc(RootUrl+"/newOffside", wrapper(newOffsideMap, app, newOffside)).Methods("POST")
+	registerV1Handlers(app, wrapper)
+}
+func registerV1Handlers(app *apollo.DefaultApp, wrapper wrapper) {
+	registerNewGoalV1(app, wrapper)
+	registerNewOffisdeV1(app, wrapper)
+	registerNewSubstitutionV1(app, wrapper)
+	registerNewYellowCardV1(app, wrapper)
+	registerNewRedCardV1(app, wrapper)
+	registerNewPenaltyV1(app, wrapper)
+	registerStartMatchV1(app, wrapper)
+}
 
-	newSubstitution := &apollo.RabbitPublisherSettings{
-		Queue:      "LiveMatch.NewSubstitution",
-		Exchange:   "LiveMatch.NewSubstitution",
-		RoutingKey: "LiveMatch.NewSubstitution",
-		Durable:    true,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-	newSubstitutionMap := make(map[string]leagueHandler)
-	newSubstitutionMap["1.0"] = NewSubstitution
-	app.Router.HandleFunc(RootUrl+"/newSubstitution", wrapper(newSubstitutionMap, app, newSubstitution)).Methods("POST")
-
-	newYellowCard := &apollo.RabbitPublisherSettings{
-		Queue:      "LiveMatch.NewYellowCard",
-		Exchange:   "LiveMatch.NewYellowCard",
-		RoutingKey: "LiveMatch.NewYellowCard",
-		Durable:    true,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-	newYellowCardMap := make(map[string]leagueHandler)
-	newYellowCardMap["1.0"] = NewYellowCard
-	app.Router.HandleFunc(RootUrl+"/NewYellowCard", wrapper(newYellowCardMap, app, newYellowCard)).Methods("POST")
-
-	newRedCard := &apollo.RabbitPublisherSettings{
-		Queue:      "LiveMatch.NewRedCard",
-		Exchange:   "LiveMatch.NewRedCard",
-		RoutingKey: "LiveMatch.NewRedCard",
-		Durable:    true,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-		Args:       nil,
-	}
-	newRedCardMap := make(map[string]leagueHandler)
-	newRedCardMap["1.0"] = NewRedCard
-	app.Router.HandleFunc(RootUrl+"/NewRedCard", wrapper(newRedCardMap, app, newRedCard)).Methods("POST")
-
+func registerNewPenaltyV1(app *apollo.DefaultApp, wrapper wrapper) {
 	newPenalty := &apollo.RabbitPublisherSettings{
 		Queue:      "LiveMatch.NewPenalty",
 		Exchange:   "LiveMatch.NewPenalty",
@@ -141,6 +87,70 @@ func registerHandlers(app *apollo.DefaultApp) {
 	newPenaltyMap := make(map[string]leagueHandler)
 	newPenaltyMap["1.0"] = NewPenalty
 	app.Router.HandleFunc(RootUrl+"/NewPenalty", wrapper(newPenaltyMap, app, newPenalty)).Methods("POST")
+}
+
+func registerNewSubstitutionV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newSubstitution := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.NewSubstitution",
+		Exchange:   "LiveMatch.NewSubstitution",
+		RoutingKey: "LiveMatch.NewSubstitution",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newSubstitutionMap := make(map[string]leagueHandler)
+	newSubstitutionMap["1.0"] = NewSubstitution
+	app.Router.HandleFunc(RootUrl+"/newSubstitution", wrapper(newSubstitutionMap, app, newSubstitution)).Methods("POST")
+}
+
+func registerNewRedCardV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newRedCard := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.NewRedCard",
+		Exchange:   "LiveMatch.NewRedCard",
+		RoutingKey: "LiveMatch.NewRedCard",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newRedCardMap := make(map[string]leagueHandler)
+	newRedCardMap["1.0"] = NewRedCard
+	app.Router.HandleFunc(RootUrl+"/NewRedCard", wrapper(newRedCardMap, app, newRedCard)).Methods("POST")
+}
+
+func registerNewYellowCardV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newYellowCard := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.NewYellowCard",
+		Exchange:   "LiveMatch.NewYellowCard",
+		RoutingKey: "LiveMatch.NewYellowCard",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newYellowCardMap := make(map[string]leagueHandler)
+	newYellowCardMap["1.0"] = NewYellowCard
+	app.Router.HandleFunc(RootUrl+"/NewYellowCard", wrapper(newYellowCardMap, app, newYellowCard)).Methods("POST")
+}
+
+func registerNewGoalV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newGoal := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.NewGoal",
+		Exchange:   "LiveMatch.NewGoal",
+		RoutingKey: "LiveMatch.NewGoal",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newGoalVersionMap := make(map[string]leagueHandler)
+	newGoalVersionMap["1.0"] = NewGoal
+	app.Router.HandleFunc(RootUrl+"/newGoal", wrapper(newGoalVersionMap, app, newGoal)).Methods("POST")
 }
 
 //
@@ -199,6 +209,22 @@ func NewGoal(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func registerNewOffisdeV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newOffside := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.NewOffside",
+		Exchange:   "LiveMatch.NewOffside",
+		RoutingKey: "LiveMatch.NewOffside",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newOffsideMap := make(map[string]leagueHandler)
+	newOffsideMap["1.0"] = NewOffside
+	app.Router.HandleFunc(RootUrl+"/newOffside", wrapper(newOffsideMap, app, newOffside)).Methods("POST")
 }
 
 //
@@ -334,6 +360,22 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func registerStartMatchV1(app *apollo.DefaultApp, wrapper wrapper) {
+	startMatch := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.StartMatch",
+		Exchange:   "LiveMatch.StartMatch",
+		RoutingKey: "LiveMatch.StartMatch",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	startMatchMap := make(map[string]leagueHandler)
+	startMatchMap["1.0"] = StartMatch
+	app.Router.HandleFunc(RootUrl+"/StartMatch", wrapper(startMatchMap, app, startMatch)).Methods("POST")
 }
 
 //

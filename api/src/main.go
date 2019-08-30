@@ -287,6 +287,7 @@ func NewYellowCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultAp
 		team   string
 		minute uint8
 		player uint8
+		reason string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -313,6 +314,7 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 		team   string
 		minute uint8
 		player uint8
+		reason string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -344,13 +346,14 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		badRequest(w, "Unable to read contents")
+		badRequest(w, fmt.Sprintf("Unable to read contents: %s", err))
 		return
 	}
 
 	bytes, err := json.Marshal(req)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)

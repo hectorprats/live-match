@@ -1,0 +1,32 @@
+version: '3.5'
+services:
+  api:
+    build:
+      context: ../api
+    image: livematch
+    hostname: livematch_api_test_net
+    container_name: livematch_api_test_net
+    depends_on:
+      - rabbit
+    ports:
+      - "9090:9090"
+    networks:
+      livematch_api_test_net:
+        aliases:
+          - livematch_api_test_net
+
+  rabbit:
+    image: livematch_rabbit
+    container_name: livematch_rabbit_api_test
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      livematch_api_test_net:
+        aliases:
+          - livematch_rabbit
+
+networks:
+  livematch_api_test_net:
+    external: false
+    name: livematch_api_test_net_net

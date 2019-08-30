@@ -1,0 +1,27 @@
+{
+  "Database": {
+    "Server": "livematch_postgres",
+    "Port": 5432,
+    "UserId": "postgres",
+    "Password": "postgres",
+    "Database": "livematch",
+    "DriverName": "postgres"
+  },
+  "Rabbit": {
+    "Connection": {
+      "User": "guest",
+      "Password": "guest",
+      "Host": "livematch_rabbit",
+      "Port": 5672
+    },
+    "Consumer": {
+      "Queue": "LiveMatch.StartMatch",
+      "Consumer": "",
+      "AutoAck": true,
+      "Exclusive": false,
+      "NoLocal": false,
+      "NoWait": false,
+      "Args": null
+    }
+  }
+}

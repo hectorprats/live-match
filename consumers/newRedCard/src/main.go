@@ -27,7 +27,6 @@ type newRedCard struct {
 	Player  uint8
 	Team    string
 	Minute  uint8
-	Reason  string
 	Version string
 }
 

@@ -370,7 +370,6 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		Team   string
 		Minute uint8
 		Player uint8
-		Reason string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -384,7 +383,6 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		Team    string
 		Minute  uint8
 		Player  uint8
-		Reason  string
 		Version string
 	}
 	vars := mux.Vars(r)
@@ -394,7 +392,6 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		Team:    req.Team,
 		Minute:  req.Minute,
 		Player:  req.Player,
-		Reason:  req.Reason,
 		Version: "1.0",
 	}
 	bytes, err := json.Marshal(event)

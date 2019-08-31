@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/axm/apollo-utils"
+	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"io/ioutil"
@@ -14,10 +15,15 @@ import (
 )
 
 const (
-	StartMatch = ``
+	StartMatch = `
+INSERT INTO MatchEvents(matchcode, eventtype, payload)
+VALUES($1, $2, $3)
+`
 )
 
 type startMatch struct {
+	Host  string
+	Guest string
 }
 
 type Config map[string]*json.RawMessage
@@ -82,26 +88,26 @@ func main() {
 	// configContents, err := readFile("consumers/startMatch/src/config.json")
 	configContents, err := readFile("config.json")
 	if err != nil {
-		log.Fatal("Error reading config file. Aborting.")
+		log.Fatal(fmt.Sprintf("Error reading config file: %s", err))
 		return
 	}
 
 	jsonConfig := make(Config)
 	err = json.Unmarshal(configContents, &jsonConfig)
 	if err != nil {
-		log.Fatal("Error parsing config. Aborting.")
+		log.Fatal(fmt.Sprintf("Error parsing config: %s", err))
 		return
 	}
 
 	dc, err := readDatabaseConnection(&jsonConfig)
 	if err != nil || dc == nil {
-		log.Fatal("Error reading database connection config")
+		log.Fatal(fmt.Sprintf("Error reading database connection config: %s", err))
 		return
 	}
 
 	rc, cs, err := readRabbitSettings(&jsonConfig)
 	if err != nil {
-		log.Fatal("Error reading rabbit connection config")
+		log.Fatal(fmt.Sprintf("Error reading rabbit connection config: %s", err))
 	}
 
 	rabbitConnectionString := fmt.Sprintf("amqp://%s:%s@%s:%d", rc.User, rc.Password, rc.Host, rc.Port)
@@ -150,7 +156,26 @@ func main() {
 	consume := func(closeFlag chan bool) {
 		for m := range msgs {
 			fmt.Println(string(m.Body))
+			var startMatch startMatch
+			err := json.Unmarshal(m.Body, &startMatch)
+			fmt.Println("Deserialized stuff")
+			if err != nil {
+				err = errors.Wrap(err, "Unable to deserialize message contents.")
+				fmt.Println(err)
+				continue
+			}
+			fmt.Println("Storing event...")
+			err = storeEvent(&startMatch, dc)
+			fmt.Println("Past store event")
+			if err != nil {
+				err = errors.Wrap(err, "Unable to store StartMatch event")
+				fmt.Println(err)
+				continue
+			}
+			fmt.Println("Event stored")
 		}
+
+		closeFlag <- true
 	}
 
 	go consume(closeFlag)
@@ -158,18 +183,20 @@ func main() {
 	fmt.Println("Received close flag")
 }
 
-func storeEvent(goal *startMatch, dc *apollo.DatabaseConnection) error {
+func storeEvent(startMatch *startMatch, dc *apollo.DatabaseConnection) error {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dc.Server, dc.Port, dc.UserId, dc.Password, dc.Database)
 	fmt.Println(fmt.Sprintf("Connection string: %s", psqlInfo))
 	db, err := sql.Open(dc.DriverName, psqlInfo)
+	fmt.Println("Connection open")
 	if err != nil {
 		return errors.Wrap(err, "Unable to open database.")
 	}
 	defer db.Close()
 
-	//payload, err := json.Marshal(goal)
-	//_, err = db.Exec(StartMatch, fmt.Sprintf("%s%s", goal.Host, goal.Guest), 1, string(payload))
+	payload, err := json.Marshal(startMatch)
+	_, err = db.Exec(StartMatch, fmt.Sprintf("%s%s", startMatch.Host, startMatch.Guest), 2, string(payload))
+	fmt.Println("SQL executed")
 	if err != nil {
 		return errors.Wrap(err, "Failed to exec sql.")
 	}

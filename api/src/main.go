@@ -71,6 +71,7 @@ func registerV1Handlers(app *apollo.DefaultApp, wrapper wrapper) {
 	registerNewRedCardV1(app, wrapper)
 	registerNewPenaltyV1(app, wrapper)
 	registerStartMatchV1(app, wrapper)
+	registerEndMatchV1(app, wrapper)
 }
 
 func registerNewPenaltyV1(app *apollo.DefaultApp, wrapper wrapper) {
@@ -209,10 +210,6 @@ func NewGoal(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, 
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-}
-
-type RabbitPublisher interface {
-	PublishMessage(rc *apollo.RabbitConnection, settings *apollo.RabbitPublisherSettings, contents *[]byte) error
 }
 
 func registerNewOffisdeV1(app *apollo.DefaultApp, wrapper wrapper) {
@@ -387,9 +384,87 @@ func registerStartMatchV1(app *apollo.DefaultApp, wrapper wrapper) {
 
 //
 func StartMatch(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+	fmt.Println("Received Start match")
+	type startMatchEvent struct {
+		Host  string
+		Guest string
+	}
+	vars := mux.Vars(r)
+	startMatch := &startMatchEvent{
+		Host:  vars["Host"],
+		Guest: vars["Guest"],
+	}
+	fmt.Println(fmt.Sprintf("Host: %s, Guest: %s", startMatch.Host, startMatch.Guest))
+	bytes, err := json.Marshal(startMatch)
+	fmt.Println("Sending payload: " + string(bytes))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
+	rc := app.Rabbit
+	addr := fmt.Sprintf("amqp://%s:%s@%s:%d/", rc.User, rc.Password, rc.Host, rc.Port)
+	fmt.Println(addr)
+
+	err = rp.PublishMessage(pub, &bytes)
+	if err != nil {
+		fmt.Println("Unable to publish message")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func registerEndMatchV1(app *apollo.DefaultApp, wrapper wrapper) {
+	endMatch := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.EndMatch",
+		Exchange:   "LiveMatch.EndMatch",
+		RoutingKey: "LiveMatch.EndMatch",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	endMatchMap := make(map[string]leagueHandler)
+	endMatchMap["1.0"] = EndMatch
+	app.Router.HandleFunc(RootUrl+"/EndMatch", wrapper(endMatchMap, app, endMatch)).Methods("POST")
 }
 
 //
 func EndMatch(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+	fmt.Println("Received End match")
+	type endMatchEvent struct {
+		Host    string
+		Guest   string
+		Version string
+	}
+	vars := mux.Vars(r)
+	endMatch := &endMatchEvent{
+		Host:  vars["Host"],
+		Guest: vars["Guest"],
+	}
+	fmt.Println(fmt.Sprintf("Host: %s, Guest: %s", endMatch.Host, endMatch.Guest))
+	bytes, err := json.Marshal(endMatch)
+	fmt.Println("Sending payload: " + string(bytes))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rc := app.Rabbit
+	addr := fmt.Sprintf("amqp://%s:%s@%s:%d/", rc.User, rc.Password, rc.Host, rc.Port)
+	fmt.Println(addr)
+
+	err = rp.PublishMessage(pub, &bytes)
+	if err != nil {
+		fmt.Println("Unable to publish message")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }

@@ -84,7 +84,7 @@ services:
   livematch_consumers_startmatch:
     build:
       context: consumers/startMatch
-    image: livematch_consumers_startmatch
+    image: livematch/consumers/startmatch
     hostname: livematch_consumers_startmatch
     container_name: livematch_consumers_startmatch
     restart: unless-stopped
@@ -95,6 +95,21 @@ services:
       livematchnet:
         aliases:
           - livematch_consumers_startmatch
+
+  livematch_consumers_endmatch:
+    build:
+      context: consumers/endMatch
+    image: livematch/consumers/endmatch
+    hostname: livematch_consumers_endmatch
+    container_name: livematch_consumers_endmatch
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_endmatch
 
 volumes:
   postgres-data:

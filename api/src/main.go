@@ -63,6 +63,7 @@ func registerHandlers(app *apollo.DefaultApp) {
 
 	registerV1Handlers(app, wrapper)
 }
+
 func registerV1Handlers(app *apollo.DefaultApp, wrapper wrapper) {
 	registerNewGoalV1(app, wrapper)
 	registerNewOffisdeV1(app, wrapper)
@@ -72,6 +73,7 @@ func registerV1Handlers(app *apollo.DefaultApp, wrapper wrapper) {
 	registerNewPenaltyV1(app, wrapper)
 	registerStartMatchV1(app, wrapper)
 	registerEndMatchV1(app, wrapper)
+	registerNewTimelineNoteV1(app, wrapper)
 }
 
 func registerNewPenaltyV1(app *apollo.DefaultApp, wrapper wrapper) {
@@ -533,6 +535,72 @@ func EndMatch(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher,
 	}
 	fmt.Println(fmt.Sprintf("Host: %s, Guest: %s", endMatch.Host, endMatch.Guest))
 	bytes, err := json.Marshal(endMatch)
+	fmt.Println("Sending payload: " + string(bytes))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rc := app.Rabbit
+	addr := fmt.Sprintf("amqp://%s:%s@%s:%d/", rc.User, rc.Password, rc.Host, rc.Port)
+	fmt.Println(addr)
+
+	err = rp.PublishMessage(pub, &bytes)
+	if err != nil {
+		fmt.Println("Unable to publish message")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func registerNewTimelineNoteV1(app *apollo.DefaultApp, wrapper wrapper) {
+	newTimelineNote := &apollo.RabbitPublisherSettings{
+		Queue:      "LiveMatch.EndMatch",
+		Exchange:   "LiveMatch.EndMatch",
+		RoutingKey: "LiveMatch.EndMatch",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+	newTimelineNoteMap := make(map[string]leagueHandler)
+	newTimelineNoteMap["1.0"] = NewTimelineNoteV1
+	app.Router.HandleFunc(RootUrl+"/NewTimelineNote", wrapper(newTimelineNoteMap, app, newTimelineNote)).Methods("POST")
+}
+
+func NewTimelineNoteV1(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+	fmt.Println("Received NewTimelineNote")
+	type request struct {
+		Minute uint8
+		Text   string
+	}
+	req := &request{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		badRequest(w, fmt.Sprintf("Unable to read contents: %s", err))
+		return
+	}
+
+	type newTimelineNoteEvent struct {
+		Host    string
+		Guest   string
+		Minute  uint8
+		Text    string
+		Version string
+	}
+	vars := mux.Vars(r)
+	newTimelineNote := &newTimelineNoteEvent{
+		Host:    vars["Host"],
+		Guest:   vars["Guest"],
+		Minute:  req.Minute,
+		Text:    req.Text,
+		Version: "1.0",
+	}
+	fmt.Println(fmt.Sprintf("Host: %s, Guest: %s", newTimelineNote.Host, newTimelineNote.Guest))
+	bytes, err := json.Marshal(newTimelineNote)
 	fmt.Println("Sending payload: " + string(bytes))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -35,7 +35,7 @@ const (
 	RootUrl = "/competitions/premier-league/matches/{Host}/{Guest}"
 )
 
-type leagueHandler func(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings)
+type leagueHandler func(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings)
 
 func badRequest(w http.ResponseWriter, reason string) {
 	w.WriteHeader(http.StatusBadRequest)
@@ -57,7 +57,7 @@ func registerHandlers(app *apollo.DefaultApp) {
 				badRequest(w, "Invalid version.")
 				return
 			}
-			handler(w, r, app, pub)
+			handler(w, r, app.Rabbit, app, pub)
 		}
 	}
 
@@ -154,7 +154,7 @@ func registerNewGoalV1(app *apollo.DefaultApp, wrapper wrapper) {
 }
 
 //
-func NewGoal(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewGoal(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	fmt.Println("Received new goal")
 	type request struct {
 		Team   string `json:"Team"`
@@ -200,7 +200,7 @@ func NewGoal(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub
 	addr := fmt.Sprintf("amqp://%s:%s@%s:%d/", rc.User, rc.Password, rc.Host, rc.Port)
 	fmt.Println(addr)
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		fmt.Println("Unable to publish message")
 		fmt.Println(err)
@@ -209,6 +209,10 @@ func NewGoal(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+type RabbitPublisher interface {
+	PublishMessage(rc *apollo.RabbitConnection, settings *apollo.RabbitPublisherSettings, contents *[]byte) error
 }
 
 func registerNewOffisdeV1(app *apollo.DefaultApp, wrapper wrapper) {
@@ -228,7 +232,7 @@ func registerNewOffisdeV1(app *apollo.DefaultApp, wrapper wrapper) {
 }
 
 //
-func NewOffside(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewOffside(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
 		team   string
 		minute uint8
@@ -245,7 +249,7 @@ func NewOffside(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -254,7 +258,7 @@ func NewOffside(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func NewSubstitution(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewSubstitution(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
 		team      string
 		inPlayer  uint8
@@ -272,7 +276,7 @@ func NewSubstitution(w http.ResponseWriter, r *http.Request, app *apollo.Default
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -282,7 +286,7 @@ func NewSubstitution(w http.ResponseWriter, r *http.Request, app *apollo.Default
 }
 
 // If second yellow card, this will be processed by the event handler
-func NewYellowCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewYellowCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
 		team   string
 		minute uint8
@@ -300,7 +304,7 @@ func NewYellowCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultAp
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -309,7 +313,7 @@ func NewYellowCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultAp
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func NewRedCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
 		team   string
 		minute uint8
@@ -327,7 +331,7 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -337,7 +341,7 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 }
 
 //
-func NewPenalty(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func NewPenalty(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
 		team   string
 		minute uint8
@@ -356,7 +360,7 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, 
 		return
 	}
 
-	err = apollo.PublishMessage(app.Rabbit, pub, &bytes)
+	err = rp.PublishMessage(pub, &bytes)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -382,10 +386,10 @@ func registerStartMatchV1(app *apollo.DefaultApp, wrapper wrapper) {
 }
 
 //
-func StartMatch(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func StartMatch(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 
 }
 
 //
-func EndMatch(w http.ResponseWriter, r *http.Request, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
+func EndMatch(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 }

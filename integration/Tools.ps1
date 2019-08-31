@@ -1,0 +1,1 @@
+docker-compose -f .\docker-compose_newGoal.yml up --force-recreate

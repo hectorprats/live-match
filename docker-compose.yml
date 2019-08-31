@@ -1,9 +1,9 @@
 version: '3.5'
 services:
   api:
-    image: livematch
+    image: livematch/api
     hostname: livematch
-    container_name: livematch
+    container_name: livematch_api
     depends_on:
       - rabbit
     ports:
@@ -15,7 +15,7 @@ services:
 
   postgres:
     image: postgres
-    hostname: postgres
+    hostname: livematch_postgres
     container_name: livematch_postgres
     ports:
       - "6543:5432"
@@ -56,7 +56,7 @@ services:
           - livematch_redis
 
   rabbit:
-    image: livematch_rabbit
+    image: livematch/rabbit
     container_name: livematch_rabbit
     ports:
       - "5672:5672"
@@ -67,6 +67,8 @@ services:
           - livematch_rabbit
 
   livematch_consumers_newgoal:
+    build:
+      context: consumers/newGoal
     image: livematch_consumers_newgoal
     hostname: livematch_consumers_newgoal
     container_name: livematch_consumers_newgoal
@@ -78,6 +80,21 @@ services:
       livematchnet:
         aliases:
           - livematch_consumers_newgoal
+
+  livematch_consumers_startmatch:
+    build:
+      context: consumers/startMatch
+    image: livematch_consumers_startmatch
+    hostname: livematch_consumers_startmatch
+    container_name: livematch_consumers_startmatch
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_startmatch
 
 volumes:
   postgres-data:

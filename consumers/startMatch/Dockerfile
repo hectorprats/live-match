@@ -1,12 +1,15 @@
-FROM golang:latest
+FROM golang:latest AS builder
 
 RUN mkdir /go/src/app
 COPY /src /go/src/app
 WORKDIR /go/src/app
 
 RUN go get app
-RUN go install
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/bin/startMatch
 
-COPY /src/config.json /go/bin
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /go/bin/startMatch /go/bin/startMatch
+RUN chmod +x /go/bin/startMatch
 
-CMD ["/go/bin/app"]
+ENTRYPOINT ["/go/bin/startMatch"]

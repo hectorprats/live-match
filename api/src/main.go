@@ -426,7 +426,6 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		Guest   string
 		ForTeam string
 		Minute  uint8
-		Reason  string
 		Version string
 	}
 	vars := mux.Vars(r)
@@ -435,7 +434,6 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		Guest:   vars["Guest"],
 		ForTeam: req.ForTeam,
 		Minute:  req.Minute,
-		Reason:  req.Reason,
 		Version: "1.0",
 	}
 	bytes, err := json.Marshal(event)

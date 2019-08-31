@@ -171,6 +171,21 @@ services:
         aliases:
           - livematch_consumers_newsubstitution
 
+  livematch_consumers_newpenalty:
+    build:
+      context: consumers/newPenalty
+    image: livematch/consumers/newpenalty
+    hostname: livematch_consumers_newpenalty
+    container_name: livematch_consumers_newpenalty
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_newpenalty
+
 volumes:
   postgres-data:
 

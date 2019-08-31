@@ -111,6 +111,21 @@ services:
         aliases:
           - livematch_consumers_endmatch
 
+  livematch_consumers_newoffside:
+    build:
+      context: consumers/newOffside
+    image: livematch/consumers/newoffside
+    hostname: livematch_consumers_newoffside
+    container_name: livematch_consumers_newoffside
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_newoffside
+
 volumes:
   postgres-data:
 

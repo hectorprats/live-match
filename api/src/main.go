@@ -231,9 +231,9 @@ func registerNewOffisdeV1(app *apollo.DefaultApp, wrapper wrapper) {
 //
 func NewOffside(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
-		team   string
-		minute uint8
-		player uint8
+		Team   string
+		Minute uint8
+		Player uint8
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -241,7 +241,24 @@ func NewOffside(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		return
 	}
 
-	bytes, err := json.Marshal(req)
+	type newOffsideEvent struct {
+		Host    string
+		Guest   string
+		Player  uint8
+		Team    string
+		Minute  uint8
+		Version string
+	}
+	vars := mux.Vars(r)
+	newOffside := newOffsideEvent{
+		Host:    vars["Host"],
+		Guest:   vars["Guest"],
+		Player:  req.Player,
+		Team:    req.Team,
+		Minute:  req.Minute,
+		Version: "1.0",
+	}
+	bytes, err := json.Marshal(newOffside)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

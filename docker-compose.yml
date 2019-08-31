@@ -141,6 +141,21 @@ services:
         aliases:
           - livematch_consumers_newyellowcard
 
+  livematch_consumers_newredcard:
+    build:
+      context: consumers/newRedCard
+    image: livematch/consumers/newredcard
+    hostname: livematch_consumers_newredcard
+    container_name: livematch_consumers_newredcard
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_newredcard
+
   livematch_consumers_newsubstitution:
     build:
       context: consumers/newSubstitution

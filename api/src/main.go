@@ -274,10 +274,10 @@ func NewOffside(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 
 func NewSubstitution(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
-		team      string
-		inPlayer  uint8
-		outPlayer uint8
-		minute    uint8
+		Team      string
+		InPlayer  uint8
+		OutPlayer uint8
+		Minute    uint8
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -285,7 +285,26 @@ func NewSubstitution(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPub
 		return
 	}
 
-	bytes, err := json.Marshal(req)
+	type newSubstitutionEvent struct {
+		Host      string
+		Guest     string
+		InPlayer  uint8
+		OutPlayer uint8
+		Team      string
+		Minute    uint8
+		Version   string
+	}
+	vars := mux.Vars(r)
+	event := newSubstitutionEvent{
+		Host:      vars["Host"],
+		Guest:     vars["Guest"],
+		InPlayer:  req.InPlayer,
+		OutPlayer: req.OutPlayer,
+		Team:      req.Team,
+		Minute:    req.Minute,
+		Version:   "1.0",
+	}
+	bytes, err := json.Marshal(event)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -302,10 +321,10 @@ func NewSubstitution(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPub
 // If second yellow card, this will be processed by the event handler
 func NewYellowCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
-		team   string
-		minute uint8
-		player uint8
-		reason string
+		Team   string
+		Minute uint8
+		Player uint8
+		Reason string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -313,7 +332,26 @@ func NewYellowCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPubli
 		return
 	}
 
-	bytes, err := json.Marshal(req)
+	type newYellowCardEvent struct {
+		Host    string
+		Guest   string
+		Team    string
+		Minute  uint8
+		Player  uint8
+		Reason  string
+		Version string
+	}
+	vars := mux.Vars(r)
+	event := newYellowCardEvent{
+		Host:    vars["Host"],
+		Guest:   vars["Guest"],
+		Team:    req.Team,
+		Minute:  req.Minute,
+		Player:  req.Player,
+		Reason:  req.Reason,
+		Version: "1.0",
+	}
+	bytes, err := json.Marshal(event)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -329,10 +367,10 @@ func NewYellowCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPubli
 
 func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
-		team   string
-		minute uint8
-		player uint8
-		reason string
+		Team   string
+		Minute uint8
+		Player uint8
+		Reason string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -340,7 +378,26 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		return
 	}
 
-	bytes, err := json.Marshal(req)
+	type newRedCardEvent struct {
+		Host    string
+		Guest   string
+		Team    string
+		Minute  uint8
+		Player  uint8
+		Reason  string
+		Version string
+	}
+	vars := mux.Vars(r)
+	event := newRedCardEvent{
+		Host:    vars["Host"],
+		Guest:   vars["Guest"],
+		Team:    req.Team,
+		Minute:  req.Minute,
+		Player:  req.Player,
+		Reason:  req.Reason,
+		Version: "1.0",
+	}
+	bytes, err := json.Marshal(event)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -357,10 +414,9 @@ func NewRedCard(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 //
 func NewPenalty(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublisher, app *apollo.DefaultApp, pub *apollo.RabbitPublisherSettings) {
 	type request struct {
-		team   string
-		minute uint8
-		player uint8
-		reason string
+		ForTeam string
+		Minute  uint8
+		Reason  string
 	}
 	req := &request{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
@@ -368,7 +424,24 @@ func NewPenalty(w http.ResponseWriter, r *http.Request, rp apollo.RabbitPublishe
 		return
 	}
 
-	bytes, err := json.Marshal(req)
+	type newPenaltyEvent struct {
+		Host    string
+		Guest   string
+		ForTeam string
+		Minute  uint8
+		Reason  string
+		Version string
+	}
+	vars := mux.Vars(r)
+	event := newPenaltyEvent{
+		Host:    vars["Host"],
+		Guest:   vars["Guest"],
+		ForTeam: req.ForTeam,
+		Minute:  req.Minute,
+		Reason:  req.Reason,
+		Version: "1.0",
+	}
+	bytes, err := json.Marshal(event)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

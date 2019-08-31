@@ -126,6 +126,36 @@ services:
         aliases:
           - livematch_consumers_newoffside
 
+  livematch_consumers_newyellowcard:
+    build:
+      context: consumers/newYellowCard
+    image: livematch/consumers/newyellowcard
+    hostname: livematch_consumers_newyellowcard
+    container_name: livematch_consumers_newyellowcard
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_newyellowcard
+
+  livematch_consumers_newsubstitution:
+    build:
+      context: consumers/newSubstitution
+    image: livematch/consumers/newsubstitution
+    hostname: livematch_consumers_newsubstitution
+    container_name: livematch_consumers_newsubstitution
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - rabbit
+    networks:
+      livematchnet:
+        aliases:
+          - livematch_consumers_newsubstitution
+
 volumes:
   postgres-data:
 

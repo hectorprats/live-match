@@ -47,14 +47,6 @@ services:
         aliases:
           - livematch_pgadmin
 
-  redis:
-    image: redis
-    container_name: livematch_redis
-    networks:
-      livematchnet:
-        aliases:
-          - livematch_redis
-
   rabbit:
     image: livematch/rabbit
     container_name: livematch_rabbit

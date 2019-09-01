@@ -23,7 +23,9 @@ CREATE TABLE Matches (
     SeasonId INT,
     MatchDay INT,
     Host VARCHAR(8),
+    HostGoals INT,
     Guest VARCHAR(8),
+    GuestGoals INT,
     Date DATE
 )
 GO
@@ -52,10 +54,14 @@ CREATE TABLE MatchEvents (
      TimestampCreated TIMESTAMP without time zone default (now() at time zone 'utc')
 )
 GO
+CREATE TABLE livematches.SeasonTeams (
+    SeasonId INT,
+    TeamId INT
+);
 
-CREATE TABLE Teams (
+CREATE TABLE livematches.Teams (
     Id SERIAL PRIMARY KEY,
-    Code NVARCHAR(8),
-    Name NVARCHAR(64)
-)
+    Code VARCHAR(8),
+    Name VARCHAR(64)
+);
 GO

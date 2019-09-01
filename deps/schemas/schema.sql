@@ -64,4 +64,11 @@ CREATE TABLE livematches.Teams (
     Code VARCHAR(8),
     Name VARCHAR(64)
 );
+
+CREATE TABLE livematches.Matches (
+    Id SERIAL PRIMARY KEY,
+    Host VARCHAR(8),
+    Guest VARCHAR(8),
+    Date Date
+);
 GO
